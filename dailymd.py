@@ -17,7 +17,6 @@ TEMPLATE = '''
 ### TODOs
 {% for todo in todos %}
 - [ ] {{ todo }}{% endfor %}
-- [ ] new todo...
 
 ### Meeting Notes
 
@@ -50,18 +49,18 @@ def file_for_day(day):
 
 
 def get_unfinished_todos():
-    # get md file from yesterday
+    # get md file from previous day
     # parse to get unchecked todos
     # return unchecked todos
-    yesterdays_file = file_for_day(YESTERDAY)
-    if not os.path.exists(yesterdays_file):
+    previous_day_file = os.path.join(DAILY_MD_DIRECTORY, sorted(os.listdir(DAILY_MD_DIRECTORY))[-1])
+    if not os.path.exists(previous_day_file):
         return []
 
-    todo_from_line = lambda line: line.replace('- [ ]', '')
-    with open(yesterdays_file) as f:
+    todo_from_line = lambda line: line.replace('- [ ] ', '')
+    with open(previous_day_file) as f:
         return [
             todo_from_line(line)
-            for line in f.readline()
+            for line in f.readlines()
             if todo_from_line(line) != line
         ]
 
@@ -81,7 +80,7 @@ def new():
     template = Template(TEMPLATE)
     contents = template.render(
         events=get_todays_calendar_events(),
-        todos=get_unfinished_todos(),
+        todos=get_unfinished_todos() or ['new todo...'],
     )
     with open(todays_file, 'w') as f:
         f.write(contents)

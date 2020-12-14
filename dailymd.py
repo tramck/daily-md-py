@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 import os
+import pytz
 
 import click
 from icalevents.icalevents import events
@@ -29,12 +30,18 @@ def get_todays_calendar_events():
     start = TODAY
     end = TOMORROW
     es = events(os.environ['DAILY_MD_CAL_LINK'], start=start, end=end)
+    latest_updated_event_by_uid = {}
+    for event in es:
+        uid = event.uid
+        latest_seen_event = latest_updated_event_by_uid.get(uid)
+        if (not latest_seen_event) or (latest_seen_event.last_modified < event.last_modified):
+            latest_updated_event_by_uid[uid] = event
     return [
         {
-            'time': event.start,
+            'time': event.start.astimezone(pytz.timezone('America/New_York')).strftime('%I:%M:%S %p'),
             'summary': event.summary,
         }
-        for event in es if not event.recurring
+        for event in sorted(latest_updated_event_by_uid.values(), key=lambda event: event.start)
     ]
 
 

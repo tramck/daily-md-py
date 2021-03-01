@@ -3,45 +3,22 @@ import os
 import pytz
 
 import click
-from icalevents.icalevents import events
 from jinja2 import Template
 
 
 DAILY_MD_CAL_LINK = os.environ['DAILY_MD_CAL_LINK']
 DAILY_MD_DIRECTORY = os.environ['DAILY_MD_DIRECTORY']
-TODAY =  date.today()
+TODAY = date.today()
 ONE_DAY = timedelta(days=1)
-YESTERDAY = TODAY - ONE_DAY
-TOMORROW = TODAY + ONE_DAY
 TEMPLATE = '''
-### TODOs
+### TODO
 {% for todo in todos %}
 - [ ] {{ todo }}{% endfor %}
 
+---
+
 ### Meeting Notes
-
-{% for event in events %}#### {{ event['time'] }}: {{ event['summary'] }}
-{% endfor %}
 '''
-
-
-def get_todays_calendar_events():
-    start = TODAY
-    end = TOMORROW
-    es = events(os.environ['DAILY_MD_CAL_LINK'], start=start, end=end)
-    latest_updated_event_by_uid = {}
-    for event in es:
-        uid = event.uid
-        latest_seen_event = latest_updated_event_by_uid.get(uid)
-        if (not latest_seen_event) or (latest_seen_event.last_modified < event.last_modified):
-            latest_updated_event_by_uid[uid] = event
-    return [
-        {
-            'time': event.start.astimezone(pytz.timezone('America/New_York')).strftime('%I:%M:%S %p'),
-            'summary': event.summary,
-        }
-        for event in sorted(latest_updated_event_by_uid.values(), key=lambda event: event.start)
-    ]
 
 
 def file_for_day(day):
@@ -79,7 +56,6 @@ def new():
 
     template = Template(TEMPLATE)
     contents = template.render(
-        events=get_todays_calendar_events(),
         todos=get_unfinished_todos() or ['new todo...'],
     )
     with open(todays_file, 'w') as f:

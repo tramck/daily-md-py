@@ -12,7 +12,7 @@ ONE_DAY = timedelta(days=1)
 TEMPLATE = '''
 ### TODO
 {% for todo in todos %}
-- [ ] {{ todo }}{% endfor %}
+{{ todo }}{% endfor %}
 
 {% if persistent_block %}
 ---
@@ -36,12 +36,12 @@ def get_unfinished_todos():
     if not os.path.exists(previous_day_file):
         return ['new todo...']
 
-    todo_from_line = lambda line: line.replace('- [ ] ', '')
+    todo_marker = '- [ ]'
     with open(previous_day_file) as f:
         return [
-            todo_from_line(line)
+            line
             for line in f.readlines()
-            if todo_from_line(line) != line
+            if todo_marker in line
         ]
 
 

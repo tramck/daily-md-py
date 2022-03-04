@@ -14,6 +14,10 @@ TEMPLATE = '''
 {% for todo in todos %}
 - [ ] {{ todo }}{% endfor %}
 
+{% if persistent_block %}
+---
+{{ persistent_block }}
+{% endif %}
 ---
 
 ### Meeting Notes
@@ -30,7 +34,7 @@ def get_unfinished_todos():
     # return unchecked todos
     previous_day_file = os.path.join(DAILY_MD_DIRECTORY, sorted(os.listdir(DAILY_MD_DIRECTORY))[-1])
     if not os.path.exists(previous_day_file):
-        return []
+        return ['new todo...']
 
     todo_from_line = lambda line: line.replace('- [ ] ', '')
     with open(previous_day_file) as f:
@@ -39,6 +43,23 @@ def get_unfinished_todos():
             for line in f.readlines()
             if todo_from_line(line) != line
         ]
+
+
+def get_persistent_block():
+    start_marker = '<!-- PERSIST_START -->'
+    end_marker = '<!-- PERSIST_END -->'
+
+    previous_day_file = os.path.join(DAILY_MD_DIRECTORY, sorted(os.listdir(DAILY_MD_DIRECTORY))[-1])
+    if not os.path.exists(previous_day_file):
+        return ''
+    with open(previous_day_file) as f:
+        contents = f.read()
+        if start_marker in contents and end_marker in contents:
+            start = contents.find(start_marker)
+            end = contents.find(end_marker) + len(end_marker)
+            return contents[start:end]
+        else:
+            return ''
 
 
 @click.group()
@@ -55,7 +76,8 @@ def new():
 
     template = Template(TEMPLATE)
     contents = template.render(
-        todos=get_unfinished_todos() or ['new todo...'],
+        todos=get_unfinished_todos(),
+        persistent_block=get_persistent_block(),
     )
     with open(todays_file, 'w') as f:
         f.write(contents)

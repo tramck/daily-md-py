@@ -32,10 +32,11 @@ setup(
     install_requires=[
         "click==8.0.4",
         "jinja2==3.0.3",
-        "markupsafe==2.1.0; python_version >= '3.7'",
+        "markupsafe==2.1.1; python_version >= '3.7'",
+        "tabulate==0.8.9",
     ],
-    entry_points='''
+    entry_points="""
         [console_scripts]
         dailymd=dailymd:cli
-    ''',
+    """,
 )

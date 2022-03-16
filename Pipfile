@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 click = "*"
 jinja2 = "*"
+tabulate = "*"
 
 [dev-packages]
 pipenv-setup = "*"

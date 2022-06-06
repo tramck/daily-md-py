@@ -10,6 +10,7 @@ from jinja2 import Template
 
 DAILY_MD_CAL_LINK = os.environ['DAILY_MD_CAL_LINK']
 DAILY_MD_DIRECTORY = os.environ['DAILY_MD_DIRECTORY']
+DAILY_MD_REPO = os.environ['DAILY_MD_REPO']
 TODAY = date.today()
 ONE_DAY = timedelta(days=1)
 TEMPLATE = '''
@@ -71,8 +72,23 @@ def cli():
     pass
 
 
+def init_git_repo():
+    if not os.path.isdir(f"{DAILY_MD_DIRECTORY}/.git"):
+        print("Initializing git repo...")
+        os.system(f"cd {DAILY_MD_DIRECTORY}; git init; git remote add origin {DAILY_MD_REPO}")
+
+
+def commit_and_push():
+    print("Pushing to git remote...")
+    os.system(f'cd {DAILY_MD_DIRECTORY}; git add .; git commit -am "{TODAY - ONE_DAY}"; git push origin master;')
+
+
 @cli.command(help='Create a file from the calendar events for today and the incomplete TODOs from yesterday')
-def new():
+@click.option('--push/--no-push', default=True)
+def new(push):
+    if push:
+        init_git_repo()
+        commit_and_push()
     todays_file = file_for_day(TODAY)
     if os.path.exists(todays_file):
         click.echo(f'{todays_file} already exists!')
